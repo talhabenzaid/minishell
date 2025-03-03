@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   command.c                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 16:12:09 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/01 13:43:26 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/03 03:05:30 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,25 +36,29 @@ int execu_cmd(char **str, char **env_list, t_data *data)
     int pid;
     char *path;
 	int	status;
+    t_alloc *head;
 
     pid = fork();
     if(pid < 0)
         return(1);
     if(pid == 0)
     {   
+        head = NULL;
         files(data->commands[0]);
-        check_if_building(str,data->env,data);
-        path = get_path(env_list,str[0], data);
+        check_if_building(str, data->env, data, &head);
+        path = get_path(env_list,str[0], data, &head);
         if(!path)
 		{
 			access(str[0], F_OK | X_OK);
 			perror(str[0]);
+            ft_lstclear_garbage(&head);
 			exit(127);
 		}
         if (execve(path, str, env_list) == -1)
         {
 			access(str[0], F_OK | X_OK);
             perror(str[0]);
+            ft_lstclear_garbage(&head);
             exit(1);
         }
     }

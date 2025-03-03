@@ -3,16 +3,16 @@
 /*                                                        :::      ::::::::   */
 /*   pipe.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 00:06:52 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/01 13:37:22 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:19:53 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-void check_if_building(char **args, t_env *env_list,t_data *data)
+void check_if_building(char **args, t_env *env_list,t_data *data, t_alloc **head)
 {
 	(void)env_list;
 	if(args[0] == NULL)
@@ -28,20 +28,11 @@ void check_if_building(char **args, t_env *env_list,t_data *data)
         exit(0);
     }
 	else if (ft_strcmp(args[0], "unset") == 0)
-    {
-        unset(args,data);
         exit(0);
-    }
 	else if (ft_strcmp(args[0], "export") == 0)
-	{
-		export(args, data);
-		exit(0);
-	}
+		export_child(args, data, head);
 	else if (ft_strcmp(args[0], "cd") == 0)
-    {
-        cd(args,data);
-		exit(0);
-    }
+        cd_child(args,data);
 	else if (ft_strcmp(args[0], "exit") == 0)
 		exit_child(args);
     else if (ft_strcmp(args[0], "env") == 0)
@@ -56,7 +47,7 @@ int first_child(char **argv,t_env *env_list,t_data *data, t_command *command)
     int fd[2];
     int pid;
     char *path;
-
+	t_alloc *head;
     char **env = convert_env_list_to_array(env_list, data);
     if (pipe(fd) == -1)
 		 exit(1);
@@ -65,15 +56,23 @@ int first_child(char **argv,t_env *env_list,t_data *data, t_command *command)
 		exit(1);
     if (pid == 0)
 	{
+		head = NULL;
 		(close(fd[0]), dup2(fd[1], 1), close(fd[1]));
 		files(command);
-        check_if_building(argv,env_list,data);
-		path = get_path(env,argv[0],data);
+        check_if_building(argv,env_list,data, &head);
+		path = get_path(env,argv[0],data, &head);
     	if(!path)
-			print_error_status(127, argv[0], "Command not found");
+		{
+			access(argv[0], F_OK | X_OK);
+			perror(argv[0]);
+            ft_lstclear_garbage(&head);
+			exit(127);
+		}
         if (execve(path, argv, env) == -1)
         {
+			access(argv[0], F_OK | X_OK);
             perror(argv[0]);
+            ft_lstclear_garbage(&head);
             exit(1);
         }
 	}
@@ -86,6 +85,7 @@ int	mid_childs(int fd_write,char **argv,t_env *env_list,t_data *data, t_command 
 	int		fd[2];
 	int		pid;
 	char	*path;
+    t_alloc *head;
 
     char **env = convert_env_list_to_array(env_list, data);
 	if (pipe(fd) == -1)
@@ -95,17 +95,24 @@ int	mid_childs(int fd_write,char **argv,t_env *env_list,t_data *data, t_command 
 		exit(1);
 	if (pid == 0)
 	{
+		head = NULL;
 		(close(fd[0]), dup2(fd_write, 0), dup2(fd[1], 1),
 			close(fd_write), close(fd[1]));
 			files(command);
-
-        check_if_building(argv,env_list,data);
-		path = get_path(env,argv[0],data);
+        check_if_building(argv,env_list,data, &head);
+		path = get_path(env,argv[0],data, &head);
     	if(!path)
-			print_error_status(127, argv[0], "Command not found");
+		{
+			access(argv[0], F_OK | X_OK);
+			perror(argv[0]);
+            ft_lstclear_garbage(&head);
+			exit(127);
+		}
         if (execve(path, argv, env) == -1)
         {
+			access(argv[0], F_OK | X_OK);
             perror(argv[0]);
+            ft_lstclear_garbage(&head);
             exit(1);
         }
 	}
@@ -119,20 +126,30 @@ void	last_child(int fd_write,char **argv,t_env *env_list,t_data *data, t_command
 	char	*path;
 	int		status;
     char **env = convert_env_list_to_array(env_list, data);
+	t_alloc *head;
+	
 	pid = fork();
 	if (pid == -1)
     return ;
 	if (pid == 0)
 	{
+		head = NULL;
 		(dup2(fd_write, 0), close(fd_write));
  		files(command);
-        check_if_building(argv, env_list, data);
-		path = get_path(env,argv[0],data);
+		check_if_building(argv,env_list,data, &head);
+		path = get_path(env,argv[0],data, &head);
 		if(!path)
-			print_error_status(127, argv[0], "Command not found");
+		{
+			access(argv[0], F_OK | X_OK);
+			perror(argv[0]);
+            ft_lstclear_garbage(&head);
+			exit(127);
+		}
         if (execve(path, argv, env) == -1)
         {
+			access(argv[0], F_OK | X_OK);
             perror(argv[0]);
+            ft_lstclear_garbage(&head);
             exit(1);
         }
 	}

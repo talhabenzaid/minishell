@@ -6,7 +6,7 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/27 17:30:41 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/01 13:43:59 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/02 23:45:28 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,7 @@ void exit_child(char **str)
         if (str[2] != NULL)
         {
             printf("exit: too many arguments\n");
-            exit(127);
+            exit(1);
         }
         else if (!valid(str[1]))
         {
@@ -123,7 +123,7 @@ void exit_program(char **str, t_data *data)
         {
             printf("exit\n");
             printf("exit: too many arguments\n");
-            data->exit_status = 127;
+            data->exit_status = 1;
             return;
         }
         else if (!valid(str[1]))

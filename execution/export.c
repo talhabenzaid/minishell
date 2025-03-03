@@ -6,7 +6,7 @@
 /*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 03:09:01 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/02 13:49:58 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:39:49 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,16 +54,15 @@ void append_env(t_env *node, char *new_value, char *current_rest,t_data *data)
 char	*ft_getenv2(char *str, t_data *data)
 {
 	t_env *current;
-
 	if (data->env == NULL && ft_strcmp(str, "PATH") == 0)
-		return(ft_strdup(data->default_path, data));
-	current = data->env;
+        return(ft_strdup(data->default_path, data));
+    current = data->env;
 	while(current)
 	{
-		if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
-			return(ft_strdup(ft_strchr(current->env_var, '=') + 1, data));
-		current = current->next;
-	}
+        if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
+            return(ft_strdup(ft_strchr(current->env_var, '='), data));
+        current = current->next;
+    }
 	return(NULL);
 }
 
@@ -72,7 +71,7 @@ void check_add(char *str, t_data *data)
     char *rest = ft_strchr(str, '=');
     int key_len;
 
-    if (rest == NULL && ft_getenv2(str, data))
+    if (rest == NULL && ft_getenv2(str + 1, data))
         return ;
     int append = 0;
     if (rest && *(rest - 1) == '+')
@@ -84,7 +83,6 @@ void check_add(char *str, t_data *data)
         key_len = rest - str;
     else
         key_len = ft_strlen(str);
-
     char *key = malloc(key_len + 1);
     if (!key)
         free_exit(data);
@@ -136,13 +134,38 @@ void check_add(char *str, t_data *data)
 
 void export(char **str, t_data *data)
 {
+    int i;
+
+    
+    i = 1;
+    data->exit_status = 0;
+    while(str[i])
+    {
+        if (!is_valid(str[i]))
+        {
+            write(2, "bash: export: '", 15);
+            write(2, str[i], ft_strlen(str[i]));
+            write(2, "': not a valid identifier\n", 27);
+            data->exit_status = 1;
+        }
+        else
+        {
+            check_add(str[i], data);
+        }
+        i++;
+    }
+}
+
+void export_child(char **str, t_data *data, t_alloc **head)
+{
     char **env_vars;
     int i;
 
     i = 0;
+    data->exit_status = 0;
     if (str[1] == NULL)
     {
-        env_vars = sort_export(data->env,data);
+        env_vars = sort_export(data->env,data, head);
         while (env_vars[i])
         {
             char *key = env_vars[i];
@@ -166,15 +189,14 @@ void export(char **str, t_data *data)
         {
             if (!is_valid(str[i]))
             {
-                printf("bash: export: `%s': not a valid identifier\n", str[i]);
+                write(2, "bash: export: '", 15);
+                write(2, str[i], ft_strlen(str[i]));
+                write(2, "': not a valid identifier\n", 27);
                 data->exit_status = 1;
-                return ;
-            }
-            else
-            {
-                check_add(str[i], data);
             }
             i++;
         }
 	}
+    ft_lstclear_garbage(head);
+    exit(data->exit_status);
 }

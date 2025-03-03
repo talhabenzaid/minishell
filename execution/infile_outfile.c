@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   infile_outfile.c                                   :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/21 22:40:12 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/02 13:38:57 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/02 15:51:09 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@ void outfile_cas(t_redir *outfiles)
 
 	if(outfiles->quote != S_QUOTE)
 	{
-		if (outfiles->name[0] == '$')
+		if (outfiles->name[0] == '$' && ft_strlen(outfiles->name) > 1)
 			print_error_status(1, outfiles->name, "ambiguous redirect");
 	}
 	if(outfiles->type == OUTPUT_DIRECTION)
@@ -41,7 +41,7 @@ void infile_cas(t_redir *infiles)
 
 	if(infiles->quote != S_QUOTE && infiles->type == INPUT_DIRECTION)
 	{
-		if (infiles->name[0] == '$')
+		if (infiles->name[0] == '$' && ft_strlen(infiles->name) > 1)
 			print_error_status(1, infiles->name, "ambiguous redirect");
 	}
 	if (infiles->type == INPUT_DIRECTION)

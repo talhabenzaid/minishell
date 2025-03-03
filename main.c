@@ -6,7 +6,7 @@
 /*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 13:46:04 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/01 11:12:01 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 01:47:09 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -104,9 +104,11 @@ static void	read_command(t_data *data)
 
 	i = 0;
 	data->alloc = NULL;
+	g_in_readline = 1;
 	data->line = readline("-> minihell ");
 	if (!data->line)
 		free_exit(data);
+	g_in_readline = 0;
 	add_data_line(data->line, data);
 	lines = ft_split(data->line, '\n', data);
 	while(lines[i])
@@ -119,11 +121,13 @@ static void	read_command(t_data *data)
 		i++;
 	}
 }
+int g_in_readline = 0;
 
 int	main(int argc, char **argv, char **env)
 {
 	t_data	*data;
 	signal(SIGINT, sigint_handler);
+	signal(SIGQUIT, sigquit_handler);
 	data = env_init(env, argc, argv);
 	while (1)
 	{

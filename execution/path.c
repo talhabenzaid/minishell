@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   path.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 13:31:32 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/02 13:39:30 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/02 17:56:03 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,13 +33,14 @@ char	**env_path(char **env, t_data *data)
 	return (path);
 }
 
-char	*find_path(char **path, char *cmd, t_data *data)
+char	*find_path(char **path, char *cmd, t_data *data, t_alloc **head)
 {
 	int		i;
 	char	*path1;
 	char	*final_path;
 
 	i = 0;
+	(void) data;
 	if (path == NULL)
 	{
 		access(cmd, F_OK | X_OK);
@@ -48,8 +49,8 @@ char	*find_path(char **path, char *cmd, t_data *data)
 	}
 	while (path[i])
 	{
-		path1 = ft_strjoin(path[i], "/", data);
-		final_path = ft_strjoin(path1, cmd, data);
+		path1 = ft_strjoin2(path[i], "/", head);
+		final_path = ft_strjoin2(path1, cmd, head);
 		if (access(final_path, F_OK | X_OK) == 0)
 			return (final_path);
 		i++;
@@ -73,7 +74,7 @@ char	*direct_execution(char *cmd, char **path, t_data *data)
 	return (ft_strdup(cmd, data));
 }
 
-char	*get_path(char **env, char *cmp, t_data *data)
+char	*get_path(char **env, char *cmp, t_data *data, t_alloc **head)
 {
     char	**path;
     char	*final_path;
@@ -88,6 +89,6 @@ char	*get_path(char **env, char *cmp, t_data *data)
         return (direct_execution(cmp, path, data));
     if (cmp[0] == '/')
         return (direct_execution(cmp, path, data));
-    final_path = find_path(path, cmp, data);
+    final_path = find_path(path, cmp, data, head);
     return (final_path);
 }

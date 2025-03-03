@@ -6,7 +6,7 @@
 /*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 20:13:56 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/02 13:38:52 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 02:41:57 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ void echo(char **str)
         printf("\n");
         return;
     }
-     while (str[i] && str[i][0] == '-' && str[i][1] == 'n')
+    while (str[i] && str[i][0] == '-' && str[i][1] == 'n')
     {
         int j = 2;
         while (str[i][j] == 'n')

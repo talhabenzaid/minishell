@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export_utils.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/27 17:37:12 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/02 13:55:27 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/02 23:29:41 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,14 +36,14 @@ void bubble_sort(char **arr, int n)
     }
 }
 
-char **sort_export(t_env *head, t_data *data)
+char **sort_export(t_env *head, t_data *data, t_alloc **head_ch)
 {
     char **env_vars;
     t_env *current;
     int count;
     int i;
-    
-    i = 0;
+
+    (void) data;
     count = 0;
     current = head;
     while (current)
@@ -52,26 +52,17 @@ char **sort_export(t_env *head, t_data *data)
             count++;
         current = current->next;
     }
-    env_vars = malloc((count + 1) * sizeof(char *));
-    if (!env_vars)
-        free_exit(data);
+    env_vars = ft_malloc2((count + 1) * sizeof(char *), head_ch);
     current = head;
     i = 0;
     while (current)
     {
         if (current->env_var) 
-            env_vars[i++] = ftt_strdup(current->env_var);
+            env_vars[i++] = ftt_strdup2(current->env_var, head_ch);
         current = current->next;
     }
     env_vars[i] = NULL;
     bubble_sort(env_vars, count);
-    current = head;
-    i = 0;
-    while (env_vars[i])
-    {
-        free(env_vars[i]);
-        i++;
-    }
     return (env_vars);
 }
 

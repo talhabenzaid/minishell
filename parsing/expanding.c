@@ -6,11 +6,17 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/15 16:19:20 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/01 21:47:59 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/02 15:22:00 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
+
+int	is_redir(int i)
+{
+	return (i == INPUT_DIRECTION || i == OUTPUT_DIRECTION
+		|| i == OUT_APPEND );
+}
 
 char	*expand_token(char *token, t_data *data)
 {
@@ -37,17 +43,62 @@ char	*expand_token(char *token, t_data *data)
 	return (token);
 }
 
-int	skip_ops_except_pipe(t_token **tokens, int current)
+void handle_redirect(t_token **tokens, int *i, t_data *data)
 {
-	while (current >= 0 && tokens[current]->part_of_previous)
-		current--;
-	if (current > 0)
-	{
-		if (is_operation(tokens[current - 1]->type)
-			&& tokens[current - 1]->type != PIPE)
-			return (0);
-	}
-	return (1);
+    if (!tokens[*i])
+        return;
+    if (ft_strlen(tokens[*i]->content) == 1)
+    {
+		if (tokens[*i + 1] && tokens[*i + 1]->part_of_previous)
+		{
+			tokens[*i + 1]->part_of_previous = 0;
+			remove_token(tokens, *i);
+			if (*i > 0)
+				(*i)--;
+		}
+		else
+			(*i)++;
+    }
+    else
+    {
+        char *original = ft_strdup(tokens[*i]->content, data);
+        if (ft_strchr(tokens[*i]->content, '$'))
+            tokens[*i]->content = expand_token(tokens[*i]->content, data);
+        if (ft_strlen(tokens[*i]->content) == 0)
+        {
+            if (tokens[*i + 1] && tokens[*i + 1]->part_of_previous)
+            {
+                tokens[*i + 1]->part_of_previous = 0;
+                remove_token(tokens, *i);
+                if (*i > 0)
+                    (*i)--;
+            }
+            else
+                tokens[(*i)++]->content = original;
+        }
+        else
+            (*i)++;
+    }
+}
+
+int skip_ops_except_pipe(t_token **tokens, int *current, t_data *data)
+{
+    if (*current <= 0 || !tokens[*current])
+        return (0);
+    if (*current > 0 && tokens[*current - 1]->type == HERE_DOC)
+    {
+        (*current)++;
+        while(tokens[*current] && tokens[*current]->part_of_previous)
+            (*current)++;
+        return (1);
+    }
+    if (*current > 0 && is_redir(tokens[*current - 1]->type))
+    {
+        while(tokens[*current] && !is_operation(tokens[*current]->type))
+            handle_redirect(tokens, current, data);
+		return (1);
+    }
+	return (0);
 }
 
 void	remove_token(t_token **tokens, int index)
@@ -98,8 +149,10 @@ void	expanding(t_data *data)
 	i = 0;
 	while (tokens[i])
 	{
-		if (!(tokens[i]->expandable && skip_ops_except_pipe(tokens, i)))
+		if (!tokens[i]->expandable)
 			i++;
+		else if(skip_ops_except_pipe(tokens, &i, data))
+			continue;
 		else if (tokens[i]->quoted == D_QUOTE)
 		{
 			tokens[i]->split_later = 0;

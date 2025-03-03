@@ -6,7 +6,7 @@
 /*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/09 12:09:41 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/02 13:50:20 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 01:46:36 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,6 +30,8 @@
 #include <limits.h>
 #include <sys/stat.h>
 
+
+extern int g_in_readline;
 
 typedef struct s_env {
     char *env_var;
@@ -101,6 +103,7 @@ typedef	struct s_data
 	int	token_size;
 	t_token		**readline_tokens;
 	t_alloc	*alloc;
+	t_alloc	*child_alloc;
 	char	*default_path;
 }	t_data;
 
@@ -131,9 +134,10 @@ char	*expand_token(char *token, t_data *data);
 char	*create_spaces(int count, t_data *data);
 char	*join_tokens(char **strs, char *token, int j, t_data *data);
 char	*get_expanded_value(char *token, int i, int *j, t_data *data);
-int	skip_ops_except_pipe(t_token **tokens, int current);
+int	skip_ops_except_pipe(t_token **tokens, int *current, t_data *data);
 void	handle_heredocs2(t_token **tokens, int stop, t_data *data);
 void	handle_heredocs(t_token **tokens, t_data *data);
+void	remove_token(t_token **tokens, int index);
 
 void	parse(t_data *data);
 int	count_commands(t_token **tokens);
@@ -169,7 +173,7 @@ void	print_error_status(int status, char *str, const char *msg);
 void	exit_status(int status, t_data *data);
 
 char	*get_full_name(t_token **tokens, int *i, t_data *data);
-char	*get_path(char **env, char *cmp, t_data *data);
+char	*get_path(char **env, char *cmp, t_data *data, t_alloc **head);
 void	free_ultimate(char **args);
 int	ft_strncmp(const char *s1, const char *s2, size_t n);
 void echo(char **str);
@@ -185,7 +189,7 @@ int    execute(t_data *data);
 t_redir	*insert_file(t_token **tokens, int *i, t_data *data);
 void	here_doc(t_redir *infile, t_data *data);
 void pipe_cas(t_command **cmd,t_env *env_list,t_data *data);
-void check_if_building(char **args, t_env *env_list,t_data *data);
+void check_if_building(char **args, t_env *env_list,t_data *data, t_alloc **head);
 void	lstadd(t_redir **lst, t_redir *new);
 int	ft_strcmp(char *s1, char *s2);
 void	free_exit(t_data *data);
@@ -198,9 +202,16 @@ void unset(char **str, t_data *data);
 char	*ft_strncpy(char *dest, char *src, int n);
 void add_export(char *str, t_data *data);
 int is_valid(const char *str);
-char **sort_export(t_env *head,t_data *data);
+char **sort_export(t_env *head, t_data *data, t_alloc **head_ch);
 void	sigint_handler(int sig);
 void exit_child(char **str);
 void check_add(char *str, t_data *data);
 char	*ftt_strdup( char *s1);
+char	*ftt_strdup2( char *s1, t_alloc **head);
+void	*ft_malloc2(size_t size, t_alloc **child);
+void cd_child(char **str, t_data *data);
+void export_child(char **str, t_data *data, t_alloc **head);
+char	*ft_strjoin2(char const *s1, char const *s2, t_alloc **data);
+char	*ft_getenv2(char *str, t_data *data);
+void sigquit_handler(int sig);
 #endif
