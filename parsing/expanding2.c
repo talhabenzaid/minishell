@@ -6,7 +6,7 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 19:28:30 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/01 20:59:25 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/03 14:56:50 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ int	ft_isalnum(int c)
 char	*ft_getenv(char *str, t_data *data)
 {
 	t_env	*current;
+	char	*value;
 
 	if (data->env == NULL && strcmp(str, "PATH") == 0)
 		return (ft_strdup(data->default_path, data));
@@ -30,7 +31,13 @@ char	*ft_getenv(char *str, t_data *data)
 	while (current)
 	{
 		if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
-			return (ft_strdup(ft_strchr(current->env_var, '=') + 1, data));
+		{
+			value = ft_strchr(current->env_var, '=');
+			if (value == NULL)
+				return (ft_strdup("", data));
+			else
+				return (ft_strdup(value + 1, data));
+		}
 		current = current->next;
 	}
 	return (ft_strdup("", data));

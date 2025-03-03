@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   export.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 03:09:01 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/03 14:39:49 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 15:03:56 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,17 +53,25 @@ void append_env(t_env *node, char *new_value, char *current_rest,t_data *data)
 
 char	*ft_getenv2(char *str, t_data *data)
 {
-	t_env *current;
-	if (data->env == NULL && ft_strcmp(str, "PATH") == 0)
-        return(ft_strdup(data->default_path, data));
-    current = data->env;
-	while(current)
+	t_env	*current;
+	char	*value;
+
+	if (data->env == NULL && strcmp(str, "PATH") == 0)
+		return (ft_strdup(data->default_path, data));
+	current = data->env;
+	while (current)
 	{
-        if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
-            return(ft_strdup(ft_strchr(current->env_var, '='), data));
-        current = current->next;
-    }
-	return(NULL);
+		if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
+		{
+			value = ft_strchr(current->env_var, '=');
+			if (value == NULL)
+				return (ft_strdup("", data));
+			else
+				return (ft_strdup(value + 1, data));
+		}
+		current = current->next;
+	}
+	return (NULL);
 }
 
 void check_add(char *str, t_data *data)
@@ -71,7 +79,7 @@ void check_add(char *str, t_data *data)
     char *rest = ft_strchr(str, '=');
     int key_len;
 
-    if (rest == NULL && ft_getenv2(str + 1, data))
+    if (rest == NULL && ft_getenv2(str, data))
         return ;
     int append = 0;
     if (rest && *(rest - 1) == '+')

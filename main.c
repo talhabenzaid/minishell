@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.c                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/16 13:46:04 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/03 01:47:09 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 15:17:05 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -116,7 +116,7 @@ static void	read_command(t_data *data)
 		cmd = ft_strtrim(lines[i], data);
 		if (ft_strlen(cmd) == 0 && ft_strlen(lines[i]) > 0)
 			add_history(lines[i]);
-		if (cmd && ft_strlen(cmd) > 1)
+		if (cmd && ft_strlen(cmd) > 0)
 			process_command(data, cmd);
 		i++;
 	}

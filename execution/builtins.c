@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   builtins.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/20 20:13:56 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/03 02:41:57 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/03 15:09:50 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,9 @@ void echo(char **str)
 void pwd()
 {
     char s[PATH_MAX];
-    char *path = getcwd(s, sizeof(s));
+    char *path;
+
+    path = getcwd(s, sizeof(s));  
     if (!path)
         perror("getcwd");
     else

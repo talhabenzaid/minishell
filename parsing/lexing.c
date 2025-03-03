@@ -6,7 +6,7 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/11 15:40:59 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/01 21:17:46 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/03 15:11:33 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -84,6 +84,12 @@ int	check_end_and_pipe(t_token **tokens, t_data *data)
 		data->exit_status = 2;
 		return (1);
 	}
+	// if (i == 1 && is_operation(tokens[i - 1]->type))
+	// {
+	// 	printf("syntax error near unexpected token 'newline'\n");
+	// 	data->exit_status = 2;
+	// 	return (1);
+	// }
 	if (is_operation(tokens[i - 1]->type))
 	{
 		handle_heredocs(tokens, data);
