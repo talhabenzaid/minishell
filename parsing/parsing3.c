@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   parsing3.c                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
+/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 19:38:33 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/03 01:40:39 by tbenzaid         ###   ########.fr       */
+/*   Updated: 2025/03/15 17:59:09 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,49 +60,4 @@ int	arg_n(t_token **tokens, int tokens_count)
 		}
 	}
 	return (count);
-}
-
-static char	*get_heredoc_name(t_data *data)
-{
-	static int	i = 0;
-	char		*number;
-	char		*name;
-
-	number = ft_itoa(i, data);
-	name = ft_strjoin("/tmp/.here_doc_limit", number, data);
-	i++;
-	return (name);
-}
-
-void	sigint_handler2(int sig)
-{
-	(void)sig;
-    g_in_readline = 3;
-	close(0);
-}
-
-void	here_doc(t_redir *infile, t_data *data)
-{
-	int		fd;
-	char	*line;
-	char	*limiter;
-
-	signal(SIGINT, sigint_handler2);
-	limiter = infile->name;
-	infile->here_doc_filename = get_heredoc_name(data);
-	fd = open(infile->here_doc_filename, O_RDWR | O_CREAT | O_TRUNC, 0640);
-	if (fd == -1)
-		return ;
-	while (1)
-	{
-		line = readline("> ");
-		if (line == NULL || ft_strcmp(line, limiter) == 0)
-			break ;
-		add_data_line(line, data);
-		if (infile->here_doc_expandable)
-			line = handle_quoted_token(line, data);
-		write(fd, line, ft_strlen(line));
-		write(fd, "\n", 1);
-	}
-	close(fd);
 }

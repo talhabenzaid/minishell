@@ -3,208 +3,118 @@
 /*                                                        :::      ::::::::   */
 /*   export.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
+/*   By: tbenzaid <tbenzaid@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/22 03:09:01 by tbenzaid          #+#    #+#             */
-/*   Updated: 2025/03/03 15:03:56 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/15 20:55:10 by tbenzaid         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-
-void append_env(t_env *node, char *new_value, char *current_rest,t_data *data)
+void	update_existing(t_env *current, char *str, char *rest, t_data *data)
 {
-    char *exist= "";
-    if (current_rest)
-        exist = current_rest + 1;
+	char	*current_rest;
 
-    int len = ft_strlen(exist) + ft_strlen(new_value);
-    char *somme = malloc(len + 1);
-    if (!somme)
-        free_exit(data);
-
-    ft_strncpy(somme, exist, ft_strlen(exist));
-    ft_strncpy(somme + ft_strlen(exist), new_value, ft_strlen(new_value));
-    somme[len] = '\0';
-
-    int key_len;
-    if (current_rest)
-        key_len = current_rest - node->env_var;
-    else
-        key_len = ft_strlen(node->env_var);
-
-    int new_len = key_len + len + 2;
-    char *new = malloc(new_len);
-    if (!new)
-    {
-        free(somme);
-        free_exit(data);
-    }
-    ft_strncpy(new, node->env_var, key_len);
-    new[key_len] = '=';
-    ft_strncpy(new + key_len + 1, somme, len);
-    new[new_len - 1] = '\0'; 
-
-    free(node->env_var);
-    node->env_var = new;
-    free(somme);
+	if (rest && *(rest - 1) == '+')
+	{
+		current_rest = ft_strchr(current->env_var, '=');
+		append_env(current, rest + 1, current_rest, data);
+	}
+	else
+	{
+		free(current->env_var);
+		current->env_var = ftt_strdup(str);
+		if (current->env_var == NULL)
+			free_exit(data);
+	}
 }
 
-char	*ft_getenv2(char *str, t_data *data)
+void	handle_new_entry(char *str, char *rest, int key_len, t_data *data)
 {
-	t_env	*current;
+	char	*new_str;
+
+	if (rest && *(rest - 1) == '+')
+	{
+		new_str = ft_malloc(ft_strlen(str) + 1, data);
+		ft_strncpy(new_str, str, key_len);
+		ft_strncpy(new_str + key_len, rest, ft_strlen(rest) + 1);
+		add_export(new_str, data);
+	}
+	else
+		add_export(str, data);
+}
+
+void	export(char **str, t_data *data)
+{
+	int	i;
+
+	i = 1;
+	exit_stat(0, 1);
+	while (str[i])
+	{
+		if (!is_valid(str[i]))
+		{
+			write(2, "bash: export: '", 15);
+			write(2, str[i], ft_strlen(str[i]));
+			write(2, "': not a valid identifier\n", 27);
+			exit_stat(1, 1);
+		}
+		else
+			check_add(str[i], data);
+		i++;
+	}
+}
+
+void	print_sorted_env_vars(char **env_vars)
+{
+	int		i;
+	char	*key;
 	char	*value;
 
-	if (data->env == NULL && strcmp(str, "PATH") == 0)
-		return (ft_strdup(data->default_path, data));
-	current = data->env;
-	while (current)
+	i = 0;
+	while (env_vars[i])
 	{
-		if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
+		key = env_vars[i];
+		value = ft_strchr(key, '=');
+		if (value)
 		{
-			value = ft_strchr(current->env_var, '=');
-			if (value == NULL)
-				return (ft_strdup("", data));
-			else
-				return (ft_strdup(value + 1, data));
+			*value = '\0';
+			value++;
+			if (key[0] != '_' && key[1] != '=')
+				printf("declare -x %s=\"%s\"\n", key, value);
 		}
-		current = current->next;
+		else
+			printf("declare -x %s\n", key);
+		i++;
 	}
-	return (NULL);
 }
 
-void check_add(char *str, t_data *data)
+void	export_child(char **str, t_data *data, t_alloc **head)
 {
-    char *rest = ft_strchr(str, '=');
-    int key_len;
+	char	**env_vars;
+	int		i;
+	int		j;
 
-    if (rest == NULL && ft_getenv2(str, data))
-        return ;
-    int append = 0;
-    if (rest && *(rest - 1) == '+')
-    {
-        append = 1;
-        key_len = (rest - 1) - str;
-    }
-    else if (rest)
-        key_len = rest - str;
-    else
-        key_len = ft_strlen(str);
-    char *key = malloc(key_len + 1);
-    if (!key)
-        free_exit(data);
-    ft_strncpy(key, str, key_len);
-    key[key_len] = '\0';
-
-    t_env *current = data->env;
-    while (current)
-    {
-        char *current_rest = ft_strchr(current->env_var, '=');
-        int current_key_len;
-        if (current_rest)
-            current_key_len = current_rest - current->env_var;
-        else
-            current_key_len = ft_strlen(current->env_var);
-
-        if (ft_strncmp(current->env_var, key, current_key_len) == 0 && current_key_len == key_len)
-        {
-                if (append)
-                    append_env(current, rest + 1, current_rest,data);
-                else
-                {
-                    free(current->env_var);
-                    current->env_var = ftt_strdup(str);
-                }
-            free(key);
-            return;
-        }
-        current = current->next;
-    }
-
-        if (append)
-        {
-            char *new_str = malloc(ft_strlen(str) + 1);
-            if (!new_str)
-            {
-                free(key);
-                free_exit(data);
-            }
-            ft_strncpy(new_str, str, key_len);
-            ft_strncpy(new_str + key_len, rest, ft_strlen(rest) + 1);
-            add_export(new_str, data);
-            free(new_str);
-        }
-        else
-            add_export(str, data);
-    free(key);
-}
-
-void export(char **str, t_data *data)
-{
-    int i;
-
-    
-    i = 1;
-    data->exit_status = 0;
-    while(str[i])
-    {
-        if (!is_valid(str[i]))
-        {
-            write(2, "bash: export: '", 15);
-            write(2, str[i], ft_strlen(str[i]));
-            write(2, "': not a valid identifier\n", 27);
-            data->exit_status = 1;
-        }
-        else
-        {
-            check_add(str[i], data);
-        }
-        i++;
-    }
-}
-
-void export_child(char **str, t_data *data, t_alloc **head)
-{
-    char **env_vars;
-    int i;
-
-    i = 0;
-    data->exit_status = 0;
-    if (str[1] == NULL)
-    {
-        env_vars = sort_export(data->env,data, head);
-        while (env_vars[i])
-        {
-            char *key = env_vars[i];
-            char *value = strchr(key, '=');
-            if (value)
-            {
-                *value = '\0';
-                value++;
-				if (key[0] != '_' && key[1] != '=')
-                	printf("declare -x %s=\"%s\"\n", key, value);
-            } 
-            else
-                printf("declare -x %s\n", key);
-            i++;
-        }
-    } 
-    else 
-    {
-        i = 1;
-        while(str[i])
-        {
-            if (!is_valid(str[i]))
-            {
-                write(2, "bash: export: '", 15);
-                write(2, str[i], ft_strlen(str[i]));
-                write(2, "': not a valid identifier\n", 27);
-                data->exit_status = 1;
-            }
-            i++;
-        }
+	j = 0;
+	if (str[1] == NULL)
+	{
+		env_vars = sort_export(data->env, data, head);
+		print_sorted_env_vars(env_vars);
 	}
-    ft_lstclear_garbage(head);
-    exit(data->exit_status);
+	else
+	{
+		i = 1;
+		while (str[i])
+		{
+			if (!is_valid(str[i]))
+			{
+				write(2, "bash: export: '", 15);
+				print_error_status(str[i], "': not a valid identifier\n");
+				j = 1;
+			}
+			i++;
+		}
+	}
+	free_exit_child(data, head, j);
 }

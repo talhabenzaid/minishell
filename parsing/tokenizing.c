@@ -6,7 +6,7 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/13 16:33:05 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/03 15:13:27 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/08 17:47:19 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,7 @@ t_token	*insert_token_arr_word(int *i, char *str, int quote, t_data *data)
 			&& ft_strchr(new, '$'));
 	token->content = new;
 	token->type = WORD;
+	token->ambigious = 0;
 	token->quoted = quote;
 	token->split_later = 0;
 	*i += j;

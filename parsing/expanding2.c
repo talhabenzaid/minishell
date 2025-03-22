@@ -6,41 +6,77 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/03/01 19:28:30 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/03 14:56:50 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/12 18:12:49 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	ft_isalnum(int c)
+void	handle_token(char **token, int count, int *i, t_data *data)
 {
-	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-		|| (c >= '0' && c <= '9'))
-		return (c);
-	return (0);
+	if (count > 1)
+		*token = handle_multiple_dollars(*token, count, *i, data);
+	else
+	{
+		(*i)++;
+		*token = build_exp_str(*token, NULL, i, data);
+	}
 }
 
-char	*ft_getenv(char *str, t_data *data)
+char	*expand_token2(t_token **t, char *token, t_data *data)
 {
-	t_env	*current;
-	char	*value;
+	int		i;
+	int		n;
+	int		l;
 
-	if (data->env == NULL && strcmp(str, "PATH") == 0)
-		return (ft_strdup(data->default_path, data));
-	current = data->env;
-	while (current)
+	i = 0;
+	while (token[i])
 	{
-		if (ft_strncmp(current->env_var, str, ft_strlen(str)) == 0)
+		l = ft_strlen(token);
+		if (i >= l)
+			break ;
+		if (token[i] == '$')
 		{
-			value = ft_strchr(current->env_var, '=');
-			if (value == NULL)
-				return (ft_strdup("", data));
-			else
-				return (ft_strdup(value + 1, data));
+			n = 0;
+			while ((i + n) < l && token[i + n] == '$')
+				n++;
+			if (n == 1 && (i + n) >= l && t[1] && t[1]->part_of_previous)
+				return (token[i] = '\0', token);
+			if (n == 1 && (i + n) >= l)
+				break ;
+			handle_token(&token, n, &i, data);
 		}
-		current = current->next;
+		else
+			i++;
 	}
-	return (ft_strdup("", data));
+	return (token);
+}
+
+char	*expand_token(char *token, t_data *data)
+{
+	int		i;
+	int		count;
+	int		token_len;
+
+	i = 0;
+	while (token[i])
+	{
+		token_len = ft_strlen(token);
+		if (i >= token_len)
+			break ;
+		if (token[i] == '$')
+		{
+			count = 0;
+			while ((i + count) < token_len && token[i + count] == '$')
+				count++;
+			if (count == 1 && (i + count) >= token_len)
+				break ;
+			handle_token(&token, count, &i, data);
+		}
+		else
+			i++;
+	}
+	return (token);
 }
 
 char	*get_expanded_value(char *token, int i, int *j, t_data *data)
@@ -49,22 +85,21 @@ char	*get_expanded_value(char *token, int i, int *j, t_data *data)
 
 	*j = 0;
 	if (token[i] == '?')
-	{
-		(*j)++;
-		return (ft_itoa(data->exit_status, data));
-	}
+		return ((*j)++, ft_itoa(exit_stat(69, 0), data));
 	if (!ft_isalnum(token[i]) && token[i] && token[i + *j] != '_')
-	{
-		while (token[i + *j] && (token[i + *j] != '$'))
-			(*j)++;
-	}
+		return (ft_strdup("$", data));
 	else
 	{
-		while (token[i + *j] && (token[i + *j] != '$'))
-		{
-			if (!ft_isalnum(token[i + *j]) && token[i + *j] != '_')
-				break ;
+		if (ft_isdigit(token[i]))
 			(*j)++;
+		else
+		{
+			while (token[i + *j] && (token[i + *j] != '$'))
+			{
+				if (!ft_isalnum(token[i + *j]) && token[i + *j] != '_')
+					break ;
+				(*j)++;
+			}
 		}
 	}
 	expanded = ft_malloc(sizeof(char) * (*j + 1), data);
@@ -89,26 +124,6 @@ char	*handle_multiple_dollars(char *token, int count, int i, t_data *data)
 		k++;
 	next = ft_malloc(sizeof(char) * (k + 1), data);
 	ft_strlcpy(next, token + i + count, k + 1);
-	token = ft_strjoin(previous, expanded, data);
-	token = ft_strjoin(token, next, data);
-	return (token);
-}
-
-char	*build_exp_str(char *token, char *previous, int i, t_data *data)
-{
-	char	*next;
-	char	*expanded;
-	int		j;
-	int		k;
-
-	k = 0;
-	expanded = get_expanded_value(token, i, &j, data);
-	previous = ft_malloc(sizeof(char) * i, data);
-	ft_strlcpy(previous, token, i);
-	while (token[i + j + k])
-		k++;
-	next = ft_malloc(sizeof(char) * (k + 1), data);
-	ft_strlcpy(next, token + i + j, k + 1);
 	token = ft_strjoin(previous, expanded, data);
 	token = ft_strjoin(token, next, data);
 	return (token);

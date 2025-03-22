@@ -6,20 +6,15 @@
 /*   By: oessoufi <oessoufi@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/02/14 16:23:14 by oessoufi          #+#    #+#             */
-/*   Updated: 2025/03/01 21:21:54 by oessoufi         ###   ########.fr       */
+/*   Updated: 2025/03/12 19:19:01 by oessoufi         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../minishell.h"
 
-int	is_quote(char c)
+int	w_ch(char c)
 {
-	return (c == '\'' || c == '\"');
-}
-
-int	to_handle(char c)
-{
-	return (c == '|' || c == '<' || c == '>');
+	return (!to_handle(c) && ft_isprint(c));
 }
 
 int	handle_quotes(char *str, int *i, char quote_char)
@@ -44,6 +39,22 @@ int	handle_quotes(char *str, int *i, char quote_char)
 	return (count);
 }
 
+int	handle_token_2(char *str, int i)
+{
+	if (w_ch(str[i]) && !is_quote(str[i]))
+		while (str[i] && w_ch(str[i + 1]) && !is_quote(str[i + 1]))
+			i++;
+	if (str[i] == '>' && str[i + 1] == '>')
+		i++;
+	else if (str[i] == '<' && str[i + 1] == '<')
+	{
+		if (str[i + 2] == '-')
+			i++;
+		i++;
+	}
+	return (i + 1);
+}
+
 int	count_tokens(char *str)
 {
 	int	i;
@@ -58,14 +69,7 @@ int	count_tokens(char *str)
 		else if ((w_ch(str[i]) || to_handle(str[i])) && !is_quote(str[i]))
 		{
 			count++;
-			if (w_ch(str[i]) && !is_quote(str[i]))
-				while (str[i] && w_ch(str[i + 1]) && !is_quote(str[i + 1]))
-					i++;
-			if (str[i] == '>' && str[i + 1] == '>')
-				i++;
-			else if (str[i] == '<' && str[i + 1] == '<')
-				i++;
-			i++;
+			i = handle_token_2(str, i);
 		}
 		else
 			i++;
